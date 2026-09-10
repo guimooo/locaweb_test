@@ -85,6 +85,8 @@ Os três grupos × três prioridades × dois horizontes dão os **18 artefatos**
 | `notebooks/` | os 3 notebooks do pipeline |
 | `notebooks/testes/` | versões antigas, **fora do fluxo** — histórico, não reproduzir |
 | `api/` | FastAPI (`main.py`, `previsao.py`, `ola.py`, `capacidade.py`, `atipicos.py`) + `web/` |
+| `frontend/` | SPA React (dashboard analítico + Command Center), site **estático** para o Vercel — ver `frontend/README.md` |
+| `scripts/` | geradores dos JSON que alimentam o `frontend/` (`gerar_dados_dashboard.py`, `gerar_dados_previsao.py`) |
 | `tests/` | portão de qualidade da reprodução |
 | `docs/` | contrato dos modelos e manual da API |
 
