@@ -205,6 +205,21 @@ table.dados tr:last-child td { border-bottom: none; }
 
 .carregando { color: var(--tinta-3); padding: 40px; text-align: center; }
 
+/* ---------- Seletor de data ---------- */
+
+.seletor-data { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seletor-data button {
+  border: 1px solid var(--linha); background: var(--superficie); color: var(--tinta);
+  width: 30px; height: 30px; border-radius: 7px; font-size: 16px; line-height: 1; cursor: pointer;
+}
+.seletor-data button:disabled { opacity: 0.35; cursor: default; }
+.seletor-data button:not(:disabled):hover { background: var(--plano); }
+.seletor-data input[type="date"] {
+  border: 1px solid var(--linha); background: var(--superficie); color: var(--tinta);
+  border-radius: 7px; padding: 5px 9px; font: inherit; font-weight: 600;
+}
+.seletor-data input[type="range"] { flex: 1; min-width: 160px; accent-color: var(--serie-1); }
+
 .destaque-num { font-weight: 680; }
 .pos { color: var(--ok); }
 .neg { color: var(--critico); }

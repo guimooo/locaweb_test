@@ -53,6 +53,35 @@ export function Selo({ nivel = 'neutro', children }) {
   )
 }
 
+export function SeletorData({ datas, valor, onChange, producao }) {
+  const i = datas.indexOf(valor)
+  const ir = (delta) => {
+    const j = Math.min(datas.length - 1, Math.max(0, i + delta))
+    onChange(datas[j])
+  }
+  return (
+    <div className="seletor-data">
+      <button onClick={() => ir(-1)} disabled={i <= 0} aria-label="dia anterior">‹</button>
+      <input
+        type="date"
+        value={valor}
+        min={datas[0]}
+        max={datas[datas.length - 1]}
+        onChange={(e) => datas.includes(e.target.value) && onChange(e.target.value)}
+      />
+      <button onClick={() => ir(1)} disabled={i >= datas.length - 1} aria-label="próximo dia">›</button>
+      <input
+        type="range"
+        min={0}
+        max={datas.length - 1}
+        value={i < 0 ? 0 : i}
+        onChange={(e) => onChange(datas[Number(e.target.value)])}
+      />
+      {valor === producao && <span className="selo atencao">caso de produção</span>}
+    </div>
+  )
+}
+
 export function BarraShare({ valor, total, cor = 'var(--serie-1)' }) {
   const p = total > 0 ? (valor / total) * 100 : 0
   return (
