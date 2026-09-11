@@ -70,14 +70,7 @@ export function SeletorData({ datas, valor, onChange, producao }) {
         onChange={(e) => datas.includes(e.target.value) && onChange(e.target.value)}
       />
       <button onClick={() => ir(1)} disabled={i >= datas.length - 1} aria-label="próximo dia">›</button>
-      <input
-        type="range"
-        min={0}
-        max={datas.length - 1}
-        value={i < 0 ? 0 : i}
-        onChange={(e) => onChange(datas[Number(e.target.value)])}
-      />
-      {valor === producao && <span className="selo atencao">caso de produção</span>}
+      {valor === producao && <span className="selo atencao">caso de produção — sem real ainda</span>}
     </div>
   )
 }

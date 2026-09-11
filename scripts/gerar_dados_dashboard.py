@@ -124,7 +124,7 @@ def serie_diaria_e_kpis(fato: list[dict]):
 # 2. Distribuição por classe de alerta e por time
 # ==================================================================================================
 
-def por_dimensao(linhas: list[dict], chave: str, rotulo_ignorar=("time",)):
+def por_dimensao(linhas: list[dict], chave: str, rotulo_ignorar=("time",), somente_ano=True):
     total_geral = defaultdict(int)
     p_geral = {p: defaultdict(int) for p in PRIORIDADES}
     mensal = defaultdict(lambda: defaultdict(int))
@@ -132,7 +132,7 @@ def por_dimensao(linhas: list[dict], chave: str, rotulo_ignorar=("time",)):
         k = r[chave]
         if k in rotulo_ignorar:
             continue
-        if r["data"][:4] != str(ANO_FOCO):
+        if somente_ano and r["data"][:4] != str(ANO_FOCO):
             continue
         total_geral[k] += inteiro(r["abertos"])
         for p in PRIORIDADES:
@@ -392,10 +392,12 @@ def main():
         "kpis.json": kpis,
         "serie_diaria.json": serie,
         "por_classe.json": {
-            **por_dimensao(classe, "classe_descricao"),
+            "2025": por_dimensao(classe, "classe_descricao", somente_ano=True),
+            "tudo": por_dimensao(classe, "classe_descricao", somente_ano=False),
             "nota": "classe_descricao: taxonomia de negócio atribuída por LLM sobre os "
                     "templates que cobrem 95% do volume. 'nao_rotulado' é a cauda longa, "
-                    "não erro de rotulagem. Não há 'produto' com série diária no projeto.",
+                    "não erro de rotulagem. Não há 'produto' com série diária no projeto. "
+                    "'tudo' inclui 2023-2024 (regime R1, artefato de extração, 0,6% da base).",
         },
         "por_time.json": {
             **por_dimensao(time, "time"),

@@ -149,8 +149,9 @@ export default function CommandCenter() {
                     </div>
                   </div>
                   <p className="nota" style={{ borderTop: 'none', marginTop: 0 }}>
-                    OLA de duração da P3 em {dia.ola.p3_duracao == null ? '—' : `${n0(dia.ola.p3_duracao)}%`}{' '}
-                    e a tendência da projeção D+7.
+                    Calculado a partir da OLA de duração da P3 nesta data (
+                    {dia.ola.p3_duracao == null ? '—' : `${n0(dia.ola.p3_duracao)}%`}) e da
+                    tendência prevista para a semana — muda ao trocar a data.
                   </p>
                 </Painel>
 
@@ -196,7 +197,7 @@ export default function CommandCenter() {
               <Painel
                 className="col-12"
                 titulo="Previsão por prioridade e tipo"
-                sub="previsto [banda 80%] · variação vs. média de 28 dias · real quando existe · o modelo supera a régua ingênua?"
+                sub="previsto [banda de 80% de confiança] · real, quando a data já passou · ✓/✗ = esse corte supera a régua ingênua no período de teste (fixo, não muda por data)"
               >
                 {['d1', 'd7'].map((h) => (
                   <div key={h} style={{ marginTop: h === 'd7' ? 18 : 4 }}>
@@ -215,7 +216,7 @@ export default function CommandCenter() {
                           {GRUPOS.map((g) => (
                             <tr key={g}>
                               <td>{rotulo(g)}</td>
-                              {PRIOS.map((p) => <Celula key={p} c={dia[h][g][p]} escala={h} />)}
+                              {PRIOS.map((p) => <Celula key={p} c={dia[h][g][p]} />)}
                             </tr>
                           ))}
                         </tbody>
@@ -293,54 +294,64 @@ const temReal = (obj) => PRIOS.every((p) => obj?.[p]?.real != null)
 const dias_em_treino = (dia) =>
   GRUPOS.some((g) => PRIOS.some((p) => dia.d1[g][p]?.selo === 'TREINO'))
 
-function Celula({ c, escala }) {
+function Celula({ c }) {
   if (!c || c.previsto == null) {
-    return <td className="num" style={{ color: 'var(--tinta-3)' }}>{c?.selo === 'SEM FEATURES' ? '—' : (c?.selo || '—')}</td>
+    return <td className="num" style={{ color: 'var(--tinta-3)' }}>{c?.selo || '—'}</td>
   }
-  const varPct = c.real != null && c.real > 0 ? ((c.previsto - c.real) / c.real) * 100 : null
+  // erro do modelo neste dia (previsto vs. real) — mostrado neutro, sem limiar escondido.
+  const erroPct = c.real != null && c.real > 0 ? ((c.previsto - c.real) / c.real) * 100 : null
   return (
     <td className="num">
       <b>{n0(c.previsto)}</b>{' '}
       <span style={{ color: 'var(--tinta-3)', fontSize: 10 }}>[{n0(c.banda[0])}–{n0(c.banda[1])}]</span>
       <div style={{ fontSize: 10.5, marginTop: 2, color: 'var(--tinta-2)' }}>
         {c.real != null ? (
-          <>real {n0(c.real)} {varPct != null && <span className={Math.abs(varPct) > 25 ? 'neg' : ''}>({sinalPct(varPct)})</span>}</>
+          <>real {n0(c.real)} <span style={{ color: 'var(--tinta-3)' }}>({sinalPct(erroPct)} de erro)</span></>
         ) : (
-          <span style={{ color: 'var(--tinta-3)' }}>sem real</span>
+          <span style={{ color: 'var(--tinta-3)' }}>sem real ainda</span>
         )}
       </div>
       <div style={{ fontSize: 10 }}>
         {c.supera_ingenuo
-          ? <span className="pos">✓ modelo</span>
-          : <span className="neg">✗ régua ({n0(c.ingenuo)})</span>}
+          ? <span className="pos">✓ confie no modelo</span>
+          : <span className="neg">✗ use a régua ({n0(c.ingenuo)})</span>}
       </div>
     </td>
   )
 }
 
 function Manchete({ className, titulo, sub, previsto, real, media, confiavel, semana }) {
-  const varPct = media ? ((previsto - media) / media) * 100 : null
+  const temReal = real != null
+  // Quando existe real, ele é o número que importa — o previsto vira a comparação.
+  // Sem real (caso de produção), o previsto lidera e a média recente dá o contexto.
+  const destaque = temReal ? real : previsto
+  const deltaVsReal = temReal && real > 0 ? ((previsto - real) / real) * 100 : null
+  const deltaVsMedia = media ? ((previsto - media) / media) * 100 : null
+
   return (
     <Painel className={className} titulo={titulo} sub={sub}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 2 }}>
         <span className="tabular" style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em' }}>
-          {n0(previsto)}
+          {n0(destaque)}
         </span>
         <span style={{ color: 'var(--tinta-2)', fontSize: 12.5 }}>
-          previstos{semana ? ' na semana' : ''}
+          {temReal ? `real${semana ? ' da semana' : ''}` : `previstos${semana ? ' na semana' : ''}`}
         </span>
       </div>
       <div style={{ marginTop: 5, fontSize: 12, color: 'var(--tinta-2)' }}>
-        média recente <b className="tabular">{n0(media)}</b>{' '}
-        <span className={varPct > 0 ? 'neg' : 'pos'}>{sinalPct(varPct)}</span>
-        {real != null && (
-          <> · real <b className="tabular">{n0(real)}</b></>
+        {temReal ? (
+          <>modelo previu <b className="tabular">{n0(previsto)}</b> ({sinalPct(deltaVsReal)} de erro)</>
+        ) : (
+          <>média recente <b className="tabular">{n0(media)}</b> ({sinalPct(deltaVsMedia)})</>
         )}
       </div>
       <div style={{ marginTop: 9 }}>
         {confiavel
-          ? <Selo nivel="ok">previsão confiável</Selo>
-          : <Selo nivel="atencao">baixa confiança — cheque a régua simples</Selo>}
+          ? <Selo nivel="ok">corte confiável</Selo>
+          : <Selo nivel="atencao">corte de baixa confiança</Selo>}
+        <div style={{ fontSize: 10.5, color: 'var(--tinta-3)', marginTop: 4 }}>
+          medido no período de teste inteiro — é do corte (grupo × prioridade), não desta data.
+        </div>
       </div>
     </Painel>
   )

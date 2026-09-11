@@ -49,22 +49,31 @@ function LegendaViz({ payload }) {
 
 /**
  * series: [{ chave, nome, cor, tipo?: 'area'|'linha', tracejado?: bool }]
+ *
+ * Só usa <AreaChart> quando alguma série pede preenchimento; séries só-linha (ex.:
+ * previsto × real × ingênuo, ou % de OLA) usam <LineChart> puro — misturar <Line>
+ * dentro de <AreaChart> sem nenhuma <Area> é o que deixava esses gráficos em branco.
  */
 export function SerieTemporal({
   dados, series, x = 'data', altura = 300, fmtX, fmtValor = n0, referencias = [],
 }) {
+  const areas = series.filter((s) => s.tipo !== 'linha')
+  const Raiz = areas.length ? AreaChart : LineChart
+
   return (
     <div style={{ width: '100%', height: altura }}>
       <ResponsiveContainer>
-        <AreaChart data={dados} margin={{ top: 8, right: 12, bottom: 4, left: 4 }}>
-          <defs>
-            {series.map((s) => (
-              <linearGradient id={`g-${s.chave}`} key={s.chave} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={s.cor} stopOpacity={0.18} />
-                <stop offset="100%" stopColor={s.cor} stopOpacity={0.02} />
-              </linearGradient>
-            ))}
-          </defs>
+        <Raiz data={dados} margin={{ top: 8, right: 12, bottom: 4, left: 4 }}>
+          {areas.length > 0 && (
+            <defs>
+              {areas.map((s) => (
+                <linearGradient id={`g-${s.chave}`} key={s.chave} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={s.cor} stopOpacity={0.18} />
+                  <stop offset="100%" stopColor={s.cor} stopOpacity={0.02} />
+                </linearGradient>
+              ))}
+            </defs>
+          )}
           <CartesianGrid {...GRADE} vertical={false} />
           <XAxis dataKey={x} {...EIXO} minTickGap={40} tickFormatter={fmtX} />
           <YAxis {...EIXO} width={44} tickFormatter={(v) => n0(v)} />
@@ -90,6 +99,7 @@ export function SerieTemporal({
                 strokeWidth={2}
                 strokeDasharray={s.tracejado ? '5 4' : undefined}
                 dot={false}
+                isAnimationActive={false}
                 connectNulls
               />
             ) : (
@@ -102,11 +112,12 @@ export function SerieTemporal({
                 strokeWidth={1.8}
                 fill={`url(#g-${s.chave})`}
                 dot={false}
+                isAnimationActive={false}
                 connectNulls
               />
             ),
           )}
-        </AreaChart>
+        </Raiz>
       </ResponsiveContainer>
     </div>
   )

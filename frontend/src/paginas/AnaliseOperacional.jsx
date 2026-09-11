@@ -12,7 +12,7 @@ export default function AnaliseOperacional() {
 
   const classePrio = useMemo(
     () =>
-      dados?.por_classe.itens
+      dados?.por_classe['2025'].itens
         .slice(0, 8)
         .map((i) => ({ nome: rotulo(i.nome), 2: i.p2, 3: i.p3, 4: i.p4 })) ?? [],
     [dados],

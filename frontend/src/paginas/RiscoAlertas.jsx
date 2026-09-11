@@ -2,19 +2,14 @@ import { useMemo } from 'react'
 import { useDados } from '../comum/dados.js'
 import { Estado, Painel, Aviso, Selo } from '../componentes/Base.jsx'
 import { SerieTemporal } from '../componentes/Grafico.jsx'
-import { n0, n1, dataBR, diaMes, rotulo } from '../comum/formato.js'
+import { n0, n1, dataBR, diaMes } from '../comum/formato.js'
 import { PRIORIDADE } from '../comum/paleta.js'
 
 export default function RiscoAlertas() {
-  const { dados, erro, carregando } = useDados('ola', 'sinais', 'por_classe', 'por_time', 'kpis')
+  const { dados, erro, carregando } = useDados('ola', 'sinais')
 
   const anomalias = useMemo(
     () => (dados ? [...dados.sinais.anomalias].reverse() : []),
-    [dados],
-  )
-
-  const topClasseP2 = useMemo(
-    () => dados?.por_classe.itens.slice().sort((a, b) => b.p2 - a.p2)[0],
     [dados],
   )
 
@@ -72,10 +67,10 @@ export default function RiscoAlertas() {
             </Painel>
 
             <Painel
-              className="col-7"
+              className="col-12"
               titulo="Central de alertas preditivos — dias fora do padrão"
               sub="Volume total do dia a ±2,5 desvios da média móvel de 30 dias (detecção estatística, dentro do mesmo regime)"
-              nota="Detecção estatística simples, não é o modelo de série temporal. Um dia fora do padrão é um candidato a investigar, não um diagnóstico."
+              nota="Detecção estatística simples sobre o histórico — não é o modelo de série temporal, e um dia fora do padrão é um candidato a investigar, não um diagnóstico. Priorização do que fazer agora, dia a dia, está no Command Center: lá o 'onde agir primeiro' recalcula pra cada data escolhida a partir da previsão D+1/D+7 — aqui ficaria estático, sempre a mesma resposta o ano inteiro."
             >
               <div className="tabela-rol">
                 <table className="dados">
@@ -107,28 +102,6 @@ export default function RiscoAlertas() {
                   </tbody>
                 </table>
               </div>
-            </Painel>
-
-            <Painel className="col-5" titulo="Onde agir primeiro" sub="Derivado do histórico de 2025 — sem previsão de modelo">
-              <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9 }}>
-                <li>
-                  <b>Classe {rotulo(topClasseP2.nome)}</b> — é a que mais gera P2 ({n0(topClasseP2.p2)}{' '}
-                  incidentes de alta prioridade no ano).
-                </li>
-                <li>
-                  <b>{dados.por_time.itens[0].nome}</b> — concentra{' '}
-                  {Math.round(dados.por_time.itens[0].share)}% de todo o volume. Qualquer
-                  escalada passa por ele.
-                </li>
-                <li>
-                  <b>Regra de OLA por volume</b> — está estourada o ano inteiro (0%). Precisa de
-                  recalibração com a área antes de virar indicador.
-                </li>
-              </ol>
-              <p className="nota">
-                Esta lista é agregação do histórico real, não saída de modelo. A versão preditiva
-                (a partir da previsão D+1/D+7) está no Command Center.
-              </p>
             </Painel>
           </div>
         </>
